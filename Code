@@ -7,6 +7,7 @@ import json
 
 # XHR中首页框架链接，包括总微博量、关注量、粉丝量等
 url_home = 'https://m.weibo.cn/api/container/getIndex?uid=3829016676&t=0&luicode=10000011&lfid=100103type%3D1%26q%3D%E9%A5%A5%E9%A5%BF%E8%8B%B1%E8%AF%AD&type=uid&value=3829016676&containerid=1005053829016676'
+
 # XHR中各个页面链接，根据page=N来取第N个页面，每次下滑加在后出现的是N+1页面
 url_page_first ="https://m.weibo.cn/api/container/getIndex?uid=3829016676&t=0&luicode=10000011&lfid=100103type%3D1%26q%3D%E9%A5%A5%E9%A5%BF%E8%8B%B1%E8%AF%AD&type=uid&value=3829016676&containerid=1076033829016676&page=1"
 url_page_next ="https://m.weibo.cn/api/container/getIndex?uid=3829016676&t=0&luicode=10000011&lfid=100103type%3D1%26q%3D%E9%A5%A5%E9%A5%BF%E8%8B%B1%E8%AF%AD&type=uid&value=3829016676&containerid=1076033829016676&page="
@@ -17,19 +18,34 @@ re = requests.get(url_home)
 data = re.json() #re.json()为字典类型，可用type(re.json())得出结果为dict
 
 statuses_count = data['data']['userInfo']['statuses_count']  # int
-url_content = []
-# 第一页有card_type=17的影响，单独做一个循环，只取card_type=9，表示用户发的微博
+print('总共'+str(statuses_count) +'条微博')
+url_id = []
+
+# 第1页有card_type=17的卡头部分影响，单独做一个循环，只取card_type=9，表示用户发的微博
 re = requests.get(url_page_first)
 tag = len(re.json()['data']['cards'])
 i = 1
 for i in range(1,tag):
-    if re.json()['data']['cards'][i]['card_type'] = 9:
-        url_content.append(re.json()['data']['cards'][i]['mblog']['id'])
+    if re.json()['data']['cards'][i]['card_type'] == 9:
+        url_id.append(re.json()['data']['cards'][i]['mblog']['id'])
         i = i + 1
+        print('第1页已爬取'+str((i-1)/tag * 100)+'%,已爬取'+str(len(url_id))+'条微博')
     else:
         i = i + 1
-
+print('第1页已爬取完成')
 # 取第2页及之后的所有页面的数据
+pagenum = 2 #标注每页页码
 while 1:
-    pagenum = 2 #标注每页页码
     re = requests.get(url_page_next+str(pagenum)) #每页的url拼接
+    i = 0
+    tag = len(re.json()['data']['cards'])
+    for i in range(0,tag):
+        url_id.append(re.json()['data']['cards'][i]['mblog']['id'])
+        print('第'+str(pagenum)+'页已爬取'+str((i)/tag * 100)+'%,已爬取'+str(len(url_id))+'条微博')
+    pagenum += 1
+    if re.json()['ok'] == 0:
+        continue
+    if len(url_id) >= statuses_count:
+        break
+print('已爬取完所有子页面id')
+print(len(url_id))
