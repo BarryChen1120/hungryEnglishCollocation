@@ -1,7 +1,6 @@
 # !/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 import requests
 import pandas as pd
 import json
@@ -9,17 +8,28 @@ import json
 # XHR中首页框架链接，包括总微博量、关注量、粉丝量等
 url_home = 'https://m.weibo.cn/api/container/getIndex?uid=3829016676&t=0&luicode=10000011&lfid=100103type%3D1%26q%3D%E9%A5%A5%E9%A5%BF%E8%8B%B1%E8%AF%AD&type=uid&value=3829016676&containerid=1005053829016676'
 # XHR中各个页面链接，根据page=N来取第N个页面，每次下滑加在后出现的是N+1页面
-url_page_first ="https://m.weibo.cn/api/container/getIndex?uid=3829016676&t=0&luicode=10000011&lfid=100103type%3D1%26q%3D%E9%A5%A5%E9%A5%BF%E8%8B%B1%E8%AF%AD&type=uid&value=3829016676&containerid=1076033829016676&page=1" 
-url_page_next ="https://m.weibo.cn/api/container/getIndex?uid=3829016676&t=0&luicode=10000011&lfid=100103type%3D1%26q%3D%E9%A5%A5%E9%A5%BF%E8%8B%B1%E8%AF%AD&type=uid&value=3829016676&containerid=1076033829016676&page=1" 
+url_page_first ="https://m.weibo.cn/api/container/getIndex?uid=3829016676&t=0&luicode=10000011&lfid=100103type%3D1%26q%3D%E9%A5%A5%E9%A5%BF%E8%8B%B1%E8%AF%AD&type=uid&value=3829016676&containerid=1076033829016676&page=1"
+url_page_next ="https://m.weibo.cn/api/container/getIndex?uid=3829016676&t=0&luicode=10000011&lfid=100103type%3D1%26q%3D%E9%A5%A5%E9%A5%BF%E8%8B%B1%E8%AF%AD&type=uid&value=3829016676&containerid=1076033829016676&page="
 
-# headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'}  
+# headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'}
+
 re = requests.get(url_home)
 data = re.json() #re.json()为字典类型，可用type(re.json())得出结果为dict
 
 statuses_count = data['data']['userInfo']['statuses_count']  # int
+url_content = []
+# 第一页有card_type=17的影响，单独做一个循环，只取card_type=9，表示用户发的微博
+re = requests.get(url_page_first)
+tag = len(re.json()['data']['cards'])
+i = 1
+for i in range(1,tag):
+    if re.json()['data']['cards'][i]['card_type'] = 9:
+        url_content.append(re.json()['data']['cards'][i]['mblog']['id'])
+        i = i + 1
+    else:
+        i = i + 1
 
-pagenum = 1
-
+# 取第2页及之后的所有页面的数据
 while 1:
     pagenum = 2 #标注每页页码
-    re = requests.get(url_page+str(pagenum)) #每页的url拼接
+    re = requests.get(url_page_next+str(pagenum)) #每页的url拼接
