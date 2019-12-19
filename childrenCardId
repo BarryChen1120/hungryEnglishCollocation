@@ -3,6 +3,8 @@
 
 import requests
 import pandas as pd
+import random
+import time
 
 # XHR中首页框架链接，包括总微博量、关注量、粉丝量等
 url_home = 'https://m.weibo.cn/api/container/getIndex?uid=3829016676&t=0&luicode=10000011&lfid=100103type%3D1%26q%3D%E9%A5%A5%E9%A5%BF%E8%8B%B1%E8%AF%AD&type=uid&value=3829016676&containerid=1005053829016676'
@@ -11,9 +13,14 @@ url_home = 'https://m.weibo.cn/api/container/getIndex?uid=3829016676&t=0&luicode
 url_page_first ="https://m.weibo.cn/api/container/getIndex?uid=3829016676&t=0&luicode=10000011&lfid=100103type%3D1%26q%3D%E9%A5%A5%E9%A5%BF%E8%8B%B1%E8%AF%AD&type=uid&value=3829016676&containerid=1076033829016676&page=1"
 url_page_next ="https://m.weibo.cn/api/container/getIndex?uid=3829016676&t=0&luicode=10000011&lfid=100103type%3D1%26q%3D%E9%A5%A5%E9%A5%BF%E8%8B%B1%E8%AF%AD&type=uid&value=3829016676&containerid=1076033829016676&page="
 
-# headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'}
+cookie = dict(mycookie = '_T_WM=10217722812; WEIBOCN_FROM=1110005030; ALF=1579242801; MLOGIN=1; SCF=AhQEPli1CVFXZ6dRVLlV99u3jCx3QheM4wTL2dbEWpLXJhv7mcPEZGUGPApmZUeQ384hoJcCf_giev5vn_NO84s.; SUB=_2A25w_bhkDeRhGeRH6FMW-SvOzT-IHXVQAdgsrDV6PUJbktANLXbMkW1NTdd5mCcXaBMTNuzI4LPP6kNrcDse_Gmq; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WFmjnvI3lbD73AkEsJps9bk5JpX5K-hUgL.Foz4e02N1K-ESoe2dJLoIXnLxKBLBonL12BLxKqL1h.LB.-LxK-LBoMLBK-LxKBLB.BL1-eLxKBLBonL12BLxKqL1heLBoeLxKnLBo-LBoMLxK-LB.2L122t; SUHB=0Yhhh8L6sqbNQ1; SSOLoginState=1576650804; XSRF-TOKEN=cb70bc; M_WEIBOCN_PARAMS=oid%3D4451144871102918%26luicode%3D10000011%26lfid%3D1076033829016676%26fid%3D1076033829016676%26uicode%3D10000011')
+user_agent = ["Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1",
+              "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_1 like Mac OS X) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.0 Mobile/14E304 Safari/602.1",
+              "Mozilla/5.0 (iPad; CPU OS 11_0 like Mac OS X) AppleWebKit/604.1.34 (KHTML, like Gecko) Version/11.0 Mobile/15A5341f Safari/604.1",
+              "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.96 Mobile Safari/537.36"]
+header = {"User_Agent":random.choice(user_agent)}
 
-re = requests.get(url_home)
+re = requests.get(url_home,headers=header,cookies=cookie)
 data = re.json() #re.json()为字典类型，可用type(re.json())得出结果为dict
 
 statuses_count = data['data']['userInfo']['statuses_count']  # int
@@ -21,7 +28,7 @@ print('总共'+str(statuses_count) +'条微博')
 url_id = []
 
 # 第1页有card_type=17的卡头部分影响，单独做一个循环，只取card_type=9，表示用户发的微博
-re = requests.get(url_page_first)
+re = requests.get(url_page_first,headers=header,cookies=cookie)
 tag = len(re.json()['data']['cards'])
 i = 1
 for i in range(1,tag):
@@ -35,8 +42,9 @@ print('第1页已爬取完成')
 # 取第2页及之后的所有页面的数据
 pagenum = 2 #标注每页页码
 while 1:
-    re = requests.get(url_page_next+str(pagenum)) #每页的url拼接
+    re = requests.get(url_page_next+str(pagenum),headers=header,cookies=cookie) #每页的url拼接
     print('第'+str(pagenum)+'页')
+    time.sleep(random.random()*5)
     if re.json()['ok'] == 0:
         pagenum += 1
         continue
@@ -55,4 +63,4 @@ print(url_id)
 
 doc = pd.DataFrame(columns='url_id',data=url_id)
 doc.to_csv('F:/hungryEnglishCollocation/urlId.csv',encoding = 'utf-8')
-    
+
