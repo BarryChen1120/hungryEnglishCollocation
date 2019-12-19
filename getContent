@@ -1,0 +1,49 @@
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+import re
+import random
+import time
+
+doc = pd.read_csv('F:/hungryEnglishCollocation/urlId.csv')
+
+cookie = dict(mycookie = '_T_WM=10217722812; WEIBOCN_FROM=1110005030; ALF=1579242801; MLOGIN=1; SCF=AhQEPli1CVFXZ6dRVLlV99u3jCx3QheM4wTL2dbEWpLXJhv7mcPEZGUGPApmZUeQ384hoJcCf_giev5vn_NO84s.; SUB=_2A25w_bhkDeRhGeRH6FMW-SvOzT-IHXVQAdgsrDV6PUJbktANLXbMkW1NTdd5mCcXaBMTNuzI4LPP6kNrcDse_Gmq; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WFmjnvI3lbD73AkEsJps9bk5JpX5K-hUgL.Foz4e02N1K-ESoe2dJLoIXnLxKBLBonL12BLxKqL1h.LB.-LxK-LBoMLBK-LxKBLB.BL1-eLxKBLBonL12BLxKqL1heLBoeLxKnLBo-LBoMLxK-LB.2L122t; SUHB=0Yhhh8L6sqbNQ1; SSOLoginState=1576650804; XSRF-TOKEN=cb70bc; M_WEIBOCN_PARAMS=oid%3D4451144871102918%26luicode%3D10000011%26lfid%3D1076033829016676%26fid%3D1076033829016676%26uicode%3D10000011')
+user_agent = ["Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1",
+              "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_1 like Mac OS X) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.0 Mobile/14E304 Safari/602.1",
+              "Mozilla/5.0 (iPad; CPU OS 11_0 like Mac OS X) AppleWebKit/604.1.34 (KHTML, like Gecko) Version/11.0 Mobile/15A5341f Safari/604.1",
+              "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.96 Mobile Safari/537.36"]
+header = {"User_Agent":random.choice(user_agent)} # 随机选择UserAgent
+
+urlid = doc['url_id']
+url_first = 'https://m.weibo.cn/detail/'
+content = []
+pattern = re.compile('/>(.*?)(<br|",)')  # 取子串所用的正则表达式
+for i in range(0,len(urlid)):
+    url = url_first + str(urlid[i])
+    time.sleep(random.random()*5) # 控制爬网页间的时间间隔，防止被反爬；random()取0-1间的随机数值
+    re = requests.get(url,headers=header,cookies = cookie) # cookie需为dict格式
+    soup = BeautifulSoup(re.text,"lxml")
+    if soup.body.script is None: # Nonetype格式可通过is None来判断
+        continue
+    else:
+        content_tmp = soup.body.script.text
+        content_tmp2 = pattern.findall(content_tmp)  # re.findall是匹配所有符合条件的子串
+        tag = 0
+        print('正在开始第'+str(i+1)+'条微博')
+        for tag in range(0,len(content_tmp2)):
+            content.append(content_tmp2[tag])
+            print('正在爬取第'+str(len(content))+'个词伙')
+        
+        
+doc = pd.DataFrame(data = content)
+doc.to_csv('F:/hungryEnglishCollocation/content.csv',index = 0,encoding = 'utf_8_sig') # win下保存文件需encoding为utf-8-sig，若为utf-8，则会乱码        
+  
+''' 
+遗留问题：
+1.爬到的微博总数与微博上显示的微博总数不一致，会有缺漏
+2.微博每页的url结尾以since_id为主，pageid也可用
+3.正则表达式不够严谨，会带有其他脏信息
+'''
