@@ -43,7 +43,7 @@ doc.to_csv('F:/hungryEnglishCollocation/content.csv',index = 0,encoding = 'utf_8
   
 ''' 
 遗留问题：
-（基本解决）1.爬到的微博总数与微博上显示的微博总数不一致，会有缺漏，改为since_id后共爬取993条/1003条
+（基本解决）1.爬到的微博总数与微博上显示的微博总数不一致，会有缺漏，改为since_id后共爬取992条/1003条
 （已解决）2.微博每页的url结尾以since_id为主，pageid也可用；最终使用since_id更准确
 3.正则表达式不够严谨，会带有其他脏信息
 '''
